@@ -39,25 +39,15 @@ for i = 1:n_rep
     clear jpdf_load
     
     for n = 1:n_scenario
-    %     % 1.3 : take one random sample of (tss,tes) by rejection sampling method
-    %     bin = 0;
-    %     while ~bin
-    %         uniform_random_pv = unifrnd(0,maxSun);
-    %         ts =  randi(N);
-    %         te =  randi(N);
-    %         if uniform_random_pv < fsun(ts,te)
-    %             bin=1;
-    %         end
-    %     end
-    %     tss(n) = round(sunx1(ts));
-    %     tes(n) = round(sunx2(te));
-
         % 2.3 : generate one random sample of PV power at i by rejection sampling method
         stime_n = s_time; etime_n = e_time;
         if i == 1
             stime_n = tss(n); 
         elseif i == n_rep
             etime_n = tes(n);
+        end
+        if etime_n > sun_range(end)  % if sun set time is greater than the data -> to be max val of data
+            etime_n = sun_range(end);
         end
         for t = stime_n:etime_n % real time loop
             tt = t-stime_n+1;
@@ -76,11 +66,8 @@ for i = 1:n_rep
                end
            end
         end
-%         if mod(n,1000)==999
-%             disp(['scenario ', num2str(n+1), ' done']);
-%             toc;
-%         end
     end
+    disp([num2str(floor(i/n_rep*100)),'% is done.']);
 toc
 end
 end
