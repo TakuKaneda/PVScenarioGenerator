@@ -1,6 +1,6 @@
 # PVScenarioGenerator
 
-Create a PV production scenario generator of the method proposed in [1].
+Build the PV production scenario generator of the method proposed in [1].
 
 **NOTE**: This repo does not have any `.csv` files. Please download data from the following links.
 ## Data download
