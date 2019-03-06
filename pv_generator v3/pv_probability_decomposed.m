@@ -8,68 +8,73 @@ tic;
 disp('start sun rise & set');
 first_sun = zeros(n_days,1);  
 last_sun = zeros(n_days,1); 
-for t=1:n_days
-    first_sun(t) = find(pv_data(t,:),1);
-    last_sun(t) = find(pv_data(t,:),1,'last');
+for tt=1:n_days
+    first_sun(tt) = find(pv_data(tt,:),1);
+    last_sun(tt) = find(pv_data(tt,:),1,'last');
 end
 sun_hours = [first_sun(:,1) last_sun(:,1)];
 
-min_hour = min(first_sun(:,1));
-max_hour = max(last_sun(:,1));
+min_hours = min(sun_hours);
+max_hours = max(sun_hours);
 
 % 1.2 : estimate bandwidht of KDF and ranges(domain)
-[~,xsun,hi1] = ksdensity(sun_hours);
-sunrange1=reshape(xsun(:,1),[30 30]);
-sunrange2=reshape(xsun(:,2),[30 30]);
-sunx1 = sunrange1(1,:);
-sunx2 = sunrange2(:,1);
- 
-% Compute the PDF
-sunx1 = linspace(sunx1(1),sunx1(end),N);
-sunx2 = linspace(sunx2(1),sunx2(end),N);
+[~,~,hi1] = ksdensity(sun_hours);
 
-hi1 = hi1.*0.5; %HALF
-fsun = joint_pdf(hi1,n_days,sunx1,sunx2,sun_hours,2);
-sun_range = min_hour:max_hour;
+% % Compute the PDF
+% sunx1 = linspace(xsun(1,1),xsun(end,1),N);
+% sunx2 = linspace(xsun(1,2),xsun(end,2),N);
+sunx1 = linspace(min_hours(1),max_hours(1),N);
+sunx2 = linspace(min_hours(2),max_hours(2),N);
+
+half_hi1 = hi1.*0.4; %HALF
+fsun = joint_pdf(half_hi1,n_days,sunx1,sunx2,sun_hours,2);
+sun_range = min_hours(1):max_hours(2);
 
 toc;
 disp('sun rise & set done');
-disp(['min sunrize:',num2str(min_hour) ,' max sunset: ',num2str(max_hour)]);
+disp(['min sunrize:',num2str(min_hours(1)) ,' max sunset: ',num2str(max_hours(2))]);
 % save sunrize & sunset data
 sunname = ['pdfdata/', datafilename,'_',num2str(N),'_sundata.mat'];
 save(sunname,'sunx1','sunx2','fsun','sun_range','H');
 clear 'sunx1' 'sunx2' 'fsun'
 %% Step 2 : Generate the joint probability
 disp('start generation of joint pdfs');
-% n_rep = 4; % number of repeat of the algorithm
-% for i = 1:n_rep
-%     xx = [floor(length(v)/n_rep*(i-1)+1), floor(length(v)/n_rep*i)]
-% end
 for i = 1:n_rep
     s_time = sun_range(floor(length(sun_range)/n_rep*(i-1)+1));
     e_time = sun_range(floor(length(sun_range)/n_rep*i));
     pv_jointpb =zeros(N,N,e_time-s_time+1);
     p_range1=zeros(N,e_time-s_time+1);
     p_range2=zeros(N,e_time-s_time+1);
-    for t = 1:e_time-s_time+1
+    pv_range = zeros(e_time-s_time+1,2);
+    for tt = 1:e_time-s_time+1
         % 2.1 : take hi2 : bandwidth of the murlivariate kernel estimatiion
         %       and   x  : range of PV power for each time
-        [~,x,hi2] = ksdensity(pv_data(:,(s_time-1)+t-1:(s_time-1)+t));
-        x1 = reshape(x(:,1),[30 30]);   
-        x2 = reshape(x(:,2),[30 30]);
-        x1 = x1(1,:);
-        x2 = x2(:,1);
+        [~,~,hi2] = ksdensity(pv_data(:,(s_time-1)+tt-1:(s_time-1)+tt));
+%         x1 = reshape(x(:,1),[30 30]);   
+%         x2 = reshape(x(:,2),[30 30]);
+%         x1 = x1(1,:);
+%         x2 = x2(:,1);
 
         % 2.2 : estimate the joint PDF of i and i-1 by KDF
-        p_range1(:,t) = linspace(x1(1),x1(end),N); % pv range of time t-1
-        p_range2(:,t) = linspace(x2(1),x2(end),N); % pv range of time t
+        x1_start = min(pv_data(:,(s_time-1)+tt-1)); 
+        x1_end = max(pv_data(:,(s_time-1)+tt-1));  
+        x2_start = min(pv_data(:,(s_time-1)+tt)); 
+        x2_end = max(pv_data(:,(s_time-1)+tt)); 
+%         x1_start = x(1,1); x1_end = x(end,1);
+%         x2_start = x(1,2); x2_end = x(end,2);
+        
+        p_range1(:,tt) = linspace(x1_start,x1_end,N); % pv range of time t-1
+        p_range2(:,tt) = linspace(x2_start,x2_end,N); % pv range of time t
 
-        hi2 = hi2*0.5; % HALF
-        pv_jointpb(:,:,t) = joint_pdf(hi2,n_days,p_range1(:,t),p_range2(:,t),pv_data,(s_time-1)+t);
+        half_hi2 = hi2*0.5; % HALF
+        pv_jointpb(:,:,tt) = joint_pdf(half_hi2,n_days,p_range1(:,tt),p_range2(:,tt),pv_data,(s_time-1)+tt);
+        
+        pv_range(tt,1) = min(pv_data(:,(s_time-1)+tt));
+        pv_range(tt,2) = max(pv_data(:,(s_time-1)+tt));
         toc;
-        disp(['time ', num2str((s_time-1)+t) ,' done']);
+        disp(['time ', num2str((s_time-1)+tt) ,' done']);
     end
     disp([num2str(i),'/',num2str(n_rep),' has finished'])
     pdfdata_name = ['pdfdata/', datafilename,'_',num2str(N),'_',num2str(i),'_jointpdf.mat'];
-    save(pdfdata_name,'s_time','e_time','p_range1','p_range2','pv_jointpb');
+    save(pdfdata_name,'s_time','e_time','p_range1','p_range2','pv_jointpb','pv_range');
 end

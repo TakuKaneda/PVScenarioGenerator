@@ -1,4 +1,4 @@
-function fbiv = joint_pdf(hi2,n_days,p_range1,p_range2,pv_24hours,time)
+function biv = joint_pdf(hi2,n_days,p_range1,p_range2,pv_data,time)
 % Authors : Bruno Losseau <bruno.losseau@student.uclouvain.be>
 %         : Taku Kaneda <taku.kaneda@student.uclouvain.be>
 % Course  : LINMA2360 Project in mathematical engineering
@@ -12,31 +12,22 @@ function fbiv = joint_pdf(hi2,n_days,p_range1,p_range2,pv_24hours,time)
 %       - p_range2   : range of PV power at i
 %       - pv_24hours : real data
 %       - time       : number of hour (=i)
-% output- fbiv       : value of joint probability in matrix form
+% output- biv       : value of joint probability in matrix form
 
 % tic
 N = length(p_range1);
 biv = zeros(N,N);
 
-
-% for k=1:N
-%     for l=1:N
-%         for i=1:n_days
-%             biv(l,k) = biv(l,k) + 1/n_days/hi2(2)/hi2(1)*gaussian((p_range2(l)-pv_24hours(i,time))/hi2(2))...
-%                 *gaussian((p_range1(k)-pv_24hours(i,time-1))/hi2(1));
-%         end
-%     end
-% end
-
 for k = 1:N
     for l = 1:N
         i = 1:n_days;
-        y = 1./n_days./hi2(2)./hi2(1).*gaussian((p_range2(l)-pv_24hours(i,time))./hi2(2))...
-                 .*gaussian((p_range1(k)-pv_24hours(i,time-1))./hi2(1));
+%         y = 1./n_days./hi2(2)./hi2(1).*gaussian((p_range2(l)-pv_24hours(i,time))./hi2(2))...
+%                  .*gaussian((p_range1(k)-pv_24hours(i,time-1))./hi2(1));
+        y = 1./n_days./hi2(2)./hi2(1).*normpdf((p_range2(l)-pv_data(i,time))./hi2(2))...
+                 .*normpdf((p_range1(k)-pv_data(i,time-1))./hi2(1));
         biv(l,k) = sum(y);
     end
 end
 % toc
-fbiv = biv;
 
 end
