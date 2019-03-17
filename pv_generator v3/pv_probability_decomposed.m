@@ -26,7 +26,7 @@ max_hours = max(sun_hours);
 sunx1 = linspace(min_hours(1),max_hours(1),N);
 sunx2 = linspace(min_hours(2),max_hours(2),N);
 
-half_hi1 = hi1.*0.4; %HALF
+half_hi1 = hi1.*0.4; %scale
 fsun = joint_pdf(half_hi1,n_days,sunx1,sunx2,sun_hours,2);
 sun_range = min_hours(1):max_hours(2);
 

@@ -1,6 +1,7 @@
 %% 1 - Building_Prob_run;
 % tic();
-N = 100; % mesh size, recommended to be at least 1000.
+N = 1000; % mesh size, recommended to be at least 1000.
+n_rep = 20; % NUMBER OF DATA SPLIT
 % It takes time to compute but it must only be computed once for a given
 % data set to catch the correlation between adjacent hours.
 
@@ -9,13 +10,12 @@ datafilename = 'PGE-SASH-4101_winter';
 pv_data =  csvread(['../preprocessing/',datafilename,'.csv']);
 
 % Computation of joint PDFs (PV power of time t and t-1 / Sun rise and sun set)
-n_rep = 20; % NUMBER OF DATA SPLIT
 disp('Starting to build the probability density functions');
-pv_probability_decomposed(pv_data,N,n_rep,datafilename);
+% pv_probability_decomposed(pv_data,N,n_rep,datafilename);
 
 %% 2 - Sampling_run;
 % Variables
-n_scenario = 500; % # of scenario
+n_scenario = 5000; % # of scenario
 % The computation is quick, can generate any number of scenarios from the
 % PDF computed at step 1.
 
